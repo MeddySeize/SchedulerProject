@@ -1,20 +1,60 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello MainController!{% endblock %}
+{% block title %}Scheduler{% endblock %}
+
+{% block stylesheets %}
+<style>
+    #calendar{
+        width: 80%;
+        margin: auto;
+    }
+</style> 
+{% endblock %}
 
 {% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
+    {{ dump(data) }}
+    <div id = "calendar">
 
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
+    </div>
+{% endblock %}
 
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code><a href="{{ 'C:/wamp64/www/SchedulerProject/src/Controller/MainController.php'|file_link(0) }}">src/Controller/MainController.php</a></code></li>
-        <li>Your template at <code><a href="{{ 'C:/wamp64/www/SchedulerProject/templates/main/index.html.twig'|file_link(0) }}">templates/main/index.html.twig</a></code></li>
-    </ul>
-</div>
+{% block javascripts %}
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+          schedulerLicenseKey: 'CC-Attribution-NonCommercial-NoDerivatives',
+          initialView: 'timeGridWeek',
+          locale: 'fr',
+          timeZone: 'Europe/Paris',
+          headerToolbar: {
+              start: 'prev,next today',
+              center: 'title',
+              end: 'dayGridMonth,timeGridWeek'
+          },
+            events: {{ data|raw }}
+        });
+
+             calendar.on('eventChange', (e) => {
+            let url = `/api/${e.event.id}/edit`
+            let donnees = {
+                "title": e.event.title,
+                "description": e.event.extendedProps.description,
+                "start": e.event.start,
+                "end": e.event.end,
+                "backgroundColor": e.event.backgroundColor,
+                "borderColor": e.event.borderColor,
+                "textColor": e.event.textColor,
+                "allDay": e.event.allDay
+            }
+            
+            let xhr = new XMLHttpRequest
+            xhr.open("PUT", url)
+            xhr.send(JSON.stringify(donnees))
+        })
+
+        
+        calendar.render();
+      });
+    </script>
 {% endblock %}
